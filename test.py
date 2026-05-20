@@ -1,36 +1,29 @@
-from langchain_community.chat_models import ChatOllama
-from langchain_core.messages import HumanMessage
+from google import genai
 
-# local email path 
-path = r"C:\Users\emoking\Downloads\sample-1.eml"
+path = "C:\\Users\\emoking\\Downloads\\sample-10.eml"
 
+#GEMINI_API_KEY = "YOUR_API_KEY_HERE"
+
+client = genai.Client(api_key = GEMINI_API_KEY)
+
+# Read .eml file as text
 with open(path, "r", encoding="utf-8", errors="ignore") as f:
-    email_content = f.read()
+    eml_content = f.read()
 
-llm = ChatOllama(
-    model="llama3",
-    temperature=0
-)
+response = client.models.generate_content(
+    model="gemini-3.5-flash",
+    contents=f"""
+Categorize this email as:
+- safe
+- scam
+- phishing
 
-prompt = f"""
-You are a cybersecurity scam/phishing detection system.
-
-Analyze this email and determine the likelihood
-that it is a scam/phishing attempt.
-
-Return EXACTLY in this format:
-
-Safe /Suspicious /Scam
-Your reasoning here
+Provide short reasoning.
 
 Email:
 
-{email_content}
-"""
+{eml_content}
+""",
+)
 
-response = llm.invoke([HumanMessage(content=prompt)])
-
-result = response.content
-
-print("\n=== PHISHING ANALYSIS ===\n")
-print(result)
+print(response.text)
