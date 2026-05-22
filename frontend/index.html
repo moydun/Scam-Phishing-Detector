@@ -1,10 +1,150 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>ScamShield</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScamShield — Интеллектуальный Детектор Фишинга и Мошенничества</title>
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
-    <h1>ScamShield</h1>
-    <p>Frontend running</p>
+
+    <header>
+        <div class="logo-container">
+            <div class="logo-shield">🛡️</div>
+            <h1 class="brand-title">ScamShield</h1>
+        </div>
+        <div class="badge-status">
+            <span class="status-dot"></span>
+            ИИ-сканер активен
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <!-- Input Panel -->
+        <section class="panel-card" id="input-card">
+            <h2 class="panel-title">📩 Загрузка и Анализ Письма</h2>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-top: -10px;">
+                Загрузите файл электронного письма (.eml) или вставьте его текст вручную для мгновенного анализа нейросетью.
+            </p>
+
+            <!-- Drag & Drop Zone -->
+            <div class="dropzone" id="dropzone">
+                <div class="dropzone-icon">📥</div>
+                <div class="dropzone-text">
+                    <p style="font-weight: 600; font-size: 16px; margin-bottom: 4px;">Перетащите файл .eml сюда</p>
+                    <p style="color: var(--text-secondary); font-size: 13px;">или нажмите, чтобы выбрать на компьютере</p>
+                </div>
+                <input type="file" id="file-input" class="file-input" accept=".eml">
+            </div>
+
+            <!-- File Selected Preview -->
+            <div class="selected-file-preview" id="file-preview">
+                <div class="file-info-container">
+                    <span class="file-icon">📄</span>
+                    <span class="file-name" id="selected-file-name">filename.eml</span>
+                </div>
+                <button class="btn-remove-file" id="btn-remove-file" title="Удалить файл">×</button>
+            </div>
+
+            <div class="or-divider">ИЛИ ВСТАВЬТЕ ТЕКСТ</div>
+
+            <!-- Plain Text Input Area -->
+            <div class="textarea-container">
+                <textarea id="text-input" class="raw-email-text" placeholder="Вставьте полный текст электронного письма (включая заголовки, если они есть)..."></textarea>
+            </div>
+
+            <!-- Error Banner -->
+            <div class="error-banner" id="error-banner">
+                <span style="font-size: 20px;">⚠️</span>
+                <div>
+                    <strong style="display: block; margin-bottom: 4px;">Ошибка анализа</strong>
+                    <span id="error-message">Произошла непредвиденная ошибка.</span>
+                </div>
+            </div>
+
+            <!-- Run Action Button -->
+            <button class="btn-analyze" id="btn-analyze">
+                <span>🔍</span> Запустить ИИ-сканирование
+            </button>
+        </section>
+
+        <!-- Results Display Panel -->
+        <section class="panel-card" id="results-card">
+            <h2 class="panel-title">📊 Результаты Сканирования</h2>
+
+            <!-- Placeholder (Default State) -->
+            <div class="results-placeholder" id="results-placeholder">
+                <div class="results-placeholder-icon">🤖</div>
+                <div>
+                    <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--text-primary);">Ожидание входных данных</h3>
+                    <p style="font-size: 14px; max-width: 320px; margin: 0 auto;">Загрузите файл или вставьте текст в левой панели, чтобы запустить проверку ScamShield.</p>
+                </div>
+            </div>
+
+            <!-- Gorgeous Scanning / Loader State -->
+            <div class="loading-container" id="loading-container">
+                <div class="radar-spinner"></div>
+                <div>
+                    <div class="loading-text" id="loading-text">Расшифровка заголовков письма...</div>
+                    <p style="color: var(--text-secondary); font-size: 13px; margin-top: 8px;">ИИ анализирует признаки фишинга и манипуляций</p>
+                </div>
+            </div>
+
+            <!-- Actual Analyzed Output Content -->
+            <div class="results-content" id="results-content">
+                <!-- Verdict Header -->
+                <div class="verdict-header-card" id="verdict-card">
+                    <div class="verdict-info">
+                        <span class="verdict-label">Вердикт безопасности</span>
+                        <h3 class="verdict-title" id="verdict-title">БЕЗОПАСНО</h3>
+                    </div>
+                    <div class="score-badge">
+                        <span class="score-value" id="confidence-value">98</span><span class="score-percent-sign">%</span>
+                        <span class="score-sublabel">Уверенность</span>
+                    </div>
+                </div>
+
+                <!-- Info Group: Reasoning -->
+                <div class="results-info-group">
+                    <h4 class="group-title"><span>📝</span> Обоснование Системы</h4>
+                    <p class="reasoning-text" id="verdict-reasoning">
+                        Письмо не содержит признаков фишинга. Отправитель верифицирован, ссылки ведут на официальные ресурсы.
+                    </p>
+                </div>
+
+                <!-- Info Group: Suspicious Elements -->
+                <div class="results-info-group" id="highlights-group">
+                    <h4 class="group-title"><span>🚩</span> Подозрительные маркеры</h4>
+                    <ul class="highlights-list" id="highlights-list">
+                        <!-- Filled dynamically -->
+                    </ul>
+                </div>
+
+                <!-- Info Group: Metadata -->
+                <div class="results-info-group">
+                    <h4 class="group-title"><span>ℹ️</span> Метаданные Письма</h4>
+                    <div class="metadata-grid">
+                        <span class="metadata-label">Тема:</span>
+                        <span class="metadata-value" id="meta-subject" title="-">-</span>
+
+                        <span class="metadata-label">От кого:</span>
+                        <span class="metadata-value" id="meta-from" title="-">-</span>
+
+                        <span class="metadata-label">Кому:</span>
+                        <span class="metadata-value" id="meta-to" title="-">-</span>
+
+                        <span class="metadata-label">Дата:</span>
+                        <span class="metadata-value" id="meta-date" title="-">-</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        &copy; 2026 ScamShield. Безопасность на базе передового ИИ Google Gemini 3.5. Все права защищены.
+    </footer>
+
+    <script src="app.js"></script>
 </body>
 </html>
