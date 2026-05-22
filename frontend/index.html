@@ -13,9 +13,12 @@
             <div class="logo-shield">🛡️</div>
             <h1 class="brand-title">ScamShield</h1>
         </div>
-        <div class="badge-status">
-            <span class="status-dot"></span>
-            ИИ-сканер активен
+        <div class="header-right-actions">
+            <div class="badge-status">
+                <span class="status-dot"></span>
+                ИИ-сканер активен
+            </div>
+            <button class="btn-settings" id="btn-settings" title="Настройки API">⚙️</button>
         </div>
     </header>
 
@@ -144,6 +147,25 @@
     <footer>
         &copy; 2026 ScamShield. Безопасность на базе передового ИИ Google Gemini 3.5. Все права защищены.
     </footer>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settings-modal">
+        <div class="settings-modal-content">
+            <div class="settings-modal-header">
+                <h3>⚙️ Настройки API Бэкенда</h3>
+                <button class="close-settings" id="close-settings">&times;</button>
+            </div>
+            <div class="settings-modal-body">
+                <label for="backend-url-input">URL Адрес API:</label>
+                <input type="text" id="backend-url-input" placeholder="http://localhost:8000">
+                <p style="font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin-top: -4px;">
+                    По умолчанию используется локальный адрес: <strong>http://localhost:8000</strong>.<br>
+                    При развертывании в облаке (например, Railway) вставьте сюда сгенерированный URL вашего бэкенд-сервиса.
+                </p>
+                <button class="btn-save-settings" id="btn-save-settings">Сохранить изменения</button>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>

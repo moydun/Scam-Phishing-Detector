@@ -36,17 +36,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedFile = null;
     let loadingInterval = null;
 
-    // Determine Backend API URL dynamically
-    let API_URL = 'http://localhost:8000/api/analyze';
-    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-        // If deployed to production (e.g. Railway), default to relative route
-        // or resolve based on standard port config if port 3000 is used.
-        if (window.location.port === '3000') {
-            API_URL = `http://${window.location.hostname}:8000/api/analyze`;
-        } else {
-            API_URL = '/api/analyze';
+    // Determine Backend API URL dynamically (supporting localStorage override)
+    function getDefaultApiUrl() {
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            if (window.location.port === '3000') {
+                return `http://${window.location.hostname}:8000/api/analyze`;
+            } else {
+                return '/api/analyze';
+            }
         }
+        return 'http://localhost:8000/api/analyze';
     }
+
+    let savedApiUrl = localStorage.getItem('scamshield_api_url');
+    let API_URL = savedApiUrl || getDefaultApiUrl();
 
     // ----------------------------------------------------
     // Drag & Drop Event Listeners
@@ -313,4 +316,61 @@ document.addEventListener('DOMContentLoaded', () => {
     function hideError() {
         errorBanner.style.display = 'none';
     }
+
+    // ----------------------------------------------------
+    // Settings Modal Logic
+    // ----------------------------------------------------
+    const btnSettings = document.getElementById('btn-settings');
+    const settingsModal = document.getElementById('settings-modal');
+    const closeSettings = document.getElementById('close-settings');
+    const backendUrlInput = document.getElementById('backend-url-input');
+    const btnSaveSettings = document.getElementById('btn-save-settings');
+
+    btnSettings.addEventListener('click', () => {
+        // Pre-populate input with current API URL
+        backendUrlInput.value = localStorage.getItem('scamshield_api_url') || '';
+        settingsModal.style.display = 'flex';
+    });
+
+    function closeSettingsModal() {
+        settingsModal.style.display = 'none';
+        hideError();
+    }
+
+    closeSettings.addEventListener('click', closeSettingsModal);
+
+    window.addEventListener('click', (e) => {
+        if (e.target === settingsModal) {
+            closeSettingsModal();
+        }
+    });
+
+    btnSaveSettings.addEventListener('click', () => {
+        let url = backendUrlInput.value.trim();
+        
+        if (url) {
+            // Ensure http:// or https:// protocol is specified
+            if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/')) {
+                url = 'http://' + url;
+            }
+            // Ensure API path is correct
+            if (!url.endsWith('/api/analyze') && url !== '/api/analyze') {
+                url = url.endsWith('/') ? url + 'api/analyze' : url + '/api/analyze';
+            }
+            localStorage.setItem('scamshield_api_url', url);
+            API_URL = url;
+        } else {
+            localStorage.removeItem('scamshield_api_url');
+            API_URL = getDefaultApiUrl();
+        }
+        
+        closeSettingsModal();
+        
+        // Show a temporary visual indication of save success
+        const originalText = btnSettings.textContent;
+        btnSettings.textContent = '✅';
+        setTimeout(() => {
+            btnSettings.textContent = originalText;
+        }, 1500);
+    });
 });
