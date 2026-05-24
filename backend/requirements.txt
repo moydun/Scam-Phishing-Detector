@@ -1,0 +1,7 @@
+Dependencies
+fastapi
+uvicorn
+requests
+python-whois
+python-dotenv
+pydantic
