@@ -2,13 +2,7 @@
 
 import React, { useState } from 'react';
 
-// Фейковая база данных для демонстрации работы кнопки проверки
-const FAKE_SCAM_DATABASE = [
-  { url: 'instagram-security.com', status: 'SCAM', reason: 'Фишинговый клон соцсети. Пытается украсть пароли через поддельную форму входа.', risk: '98%' },
-  { url: 'crypto-gift-giveaway.net', status: 'SCAM', reason: 'Мошеннический сайт с раздачей криптовалюты. Требует тестовый платеж.', risk: '95%' },
-  { url: 'google.com', status: 'SAFE', reason: 'Официальный проверенный домен Google LLC. Вредоносной активности не обнаружено.', risk: '0%' },
-  { url: 'github.com', status: 'SAFE', reason: 'Официальный репозиторий GitHub Inc. Безопасно для использования.', risk: '1%' },
-];
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
 export default function Home() {
   // Состояния для интерактивности (чтобы кнопки работали)
@@ -20,33 +14,47 @@ export default function Home() {
   const [username, setUsername] = useState('');
   const [history, setHistory] = useState<any[]>([]);
 
-  // ЛОГИКА РАБОТЫ КНОПКИ «ПРОВЕРИТЬ»
-  const handleCheck = () => {
+  const handleCheck = async () => {
     if (!urlInput.trim()) return;
 
     setIsSearching(true);
     setResult(null);
 
-    // Имитируем задержку "анализа ИИ" в 1.5 секунды для реализма
-    setTimeout(() => {
-      const cleanUrl = urlInput.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
-      const found = FAKE_SCAM_DATABASE.find(item => item.url.includes(cleanUrl));
+    try {
+      const response = await fetch(`${BACKEND_URL}/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: urlInput.trim() }),
+      });
 
-      const finalResult = found || {
-        url: cleanUrl,
-        status: 'SUSPICIOUS',
-        reason: 'Новый или малоизвестный домен. Наш ИИ заметил подозрительную структуру текста. Рекомендуем соблюдать осторожность.',
-        risk: '65%'
+      if (!response.ok) throw new Error('Server error');
+
+      const data = await response.json();
+
+      const finalResult = {
+        url: urlInput.trim(),
+        status: data.verdict || 'UNKNOWN',
+        reason: data.explanation || 'Анализ завершён.',
+        risk: data.risk_level === 'HIGH' ? '90%' : data.risk_level === 'MEDIUM' ? '50%' : '10%',
+        virustotal: data.virustotal,
+        whois: data.whois,
       };
 
       setResult(finalResult);
-      setIsSearching(false);
 
-      // Если пользователь залогинен, сохраняем проверку в его историю аккаунта
       if (isLoggedIn) {
-        setHistory(prev => [{ url: cleanUrl, status: finalResult.status, date: 'Сегодня, ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }, ...prev]);
+        setHistory((prev: any[]) => [{ url: urlInput.trim(), status: finalResult.status, date: 'Сегодня, ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }, ...prev]);
       }
-    }, 1500);
+    } catch {
+      setResult({
+        url: urlInput.trim(),
+        status: 'UNKNOWN',
+        reason: 'Не удалось связаться с сервером. Проверьте подключение.',
+        risk: '—',
+      });
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   // Логика фейкового входа

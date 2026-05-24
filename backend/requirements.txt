@@ -1,7 +1,7 @@
-Dependencies
 fastapi
-uvicorn
+uvicorn[standard]
 requests
 python-whois
 python-dotenv
 pydantic
+groq
