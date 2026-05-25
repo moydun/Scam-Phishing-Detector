@@ -3,12 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from google import genai
 import json
+from dotenv import load_dotenv 
+import os 
 
-# =========================
-# CONFIG
-# =========================
+load_dotenv()
 
-GEMINI_API_KEY = "nigga balls"
+api_key = os.getenv("API_KEY") 
+debug = os.getenv("DEBUG", "False") 
+
+GEMINI_API_KEY = api_key
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = FastAPI()
